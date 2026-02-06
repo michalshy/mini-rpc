@@ -16,34 +16,74 @@ FetchContent_MakeAvailable(Catch2)
 
 enable_testing()
 
-# build your main executable if there are sources under src/
-file(GLOB_RECURSE MINI_RPC_SOURCES CONFIGURE_DEPENDS
+# Create a shared library from sources in src/ and public/
+file(GLOB_RECURSE SRC_SOURCES CONFIGURE_DEPENDS
      "${CMAKE_SOURCE_DIR}/src/*.cpp"
      "${CMAKE_SOURCE_DIR}/src/*.cxx"
      "${CMAKE_SOURCE_DIR}/src/*.cc"
 )
+file(GLOB_RECURSE PUB_SOURCES CONFIGURE_DEPENDS
+     "${CMAKE_SOURCE_DIR}/public/*.cpp"
+     "${CMAKE_SOURCE_DIR}/public/*.cxx"
+     "${CMAKE_SOURCE_DIR}/public/*.cc"
+)
 
-if(MINI_RPC_SOURCES)
-    add_executable(${PROJECT_NAME} ${MINI_RPC_SOURCES})
-    target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include")
-    # link libraries here if needed, e.g.
-    # target_link_libraries(${PROJECT_NAME} PRIVATE some_lib)
+# Create glob for tests and examples
+
+file(GLOB_RECURSE GLOB_EXAMPLES CONFIGURE_DEPENDS
+     "${CMAKE_SOURCE_DIR}/examples/*.cpp"
+     "${CMAKE_SOURCE_DIR}/examples/*.cxx"
+     "${CMAKE_SOURCE_DIR}/examples/*.cc"
+)
+
+file(GLOB_RECURSE GLOB_TESTS CONFIGURE_DEPENDS
+     "${CMAKE_SOURCE_DIR}/tests/*.cpp"
+     "${CMAKE_SOURCE_DIR}/tests/*.cxx"
+     "${CMAKE_SOURCE_DIR}/tests/*.cc"
+)
+
+set(LIB_SOURCES ${SRC_SOURCES} ${PUB_SOURCES})
+
+# normalize project name to a target-friendly identifier
+string(REPLACE "-" "_" PROJECT_ID ${PROJECT_NAME})
+
+if(LIB_SOURCES)
+    add_library(${PROJECT_ID} SHARED ${LIB_SOURCES})
+    target_include_directories(${PROJECT_ID} PUBLIC "${CMAKE_SOURCE_DIR}/public")
 else()
-    message(STATUS "No sources found in src/, skipping ${PROJECT_NAME} executable")
+    message(STATUS "No sources found in src/ or public/, skipping ${PROJECT_ID} library")
 endif()
 
-# create a sample test file if none exists
+# Build each example source file as a separate executable
+file(GLOB GLOB_EXAMPLES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/examples/*.cpp" "${CMAKE_SOURCE_DIR}/examples/*.cxx" "${CMAKE_SOURCE_DIR}/examples/*.cc")
+foreach(example_src IN LISTS GLOB_EXAMPLES)
+    get_filename_component(example_name ${example_src} NAME_WE)
+    add_executable(${example_name} ${example_src})
+    target_include_directories(${example_name} PRIVATE "${CMAKE_SOURCE_DIR}/public")
+    if(TARGET ${PROJECT_ID})
+        target_link_libraries(${example_name} PRIVATE ${PROJECT_ID})
+    endif()
+endforeach()
+
+# Ensure tests dir exists
 if(NOT EXISTS "${CMAKE_SOURCE_DIR}/tests")
     file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/tests")
 endif()
 
-add_executable(tests_run
-    tests/test_sample.cpp
-)
+# Build each test source file as a separate executable and register with CTest
+file(GLOB GLOB_TESTS CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/tests/*.cpp" "${CMAKE_SOURCE_DIR}/tests/*.cxx" "${CMAKE_SOURCE_DIR}/tests/*.cc")
 
-target_link_libraries(tests_run PRIVATE Catch2::Catch2WithMain)
-
-list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
 include(Catch)
 
-catch_discover_tests(tests_run)
+foreach(test_src IN LISTS GLOB_TESTS)
+    get_filename_component(test_name ${test_src} NAME_WE)
+    set(test_target "${test_name}_exe")
+    add_executable(${test_target} ${test_src})
+    target_include_directories(${test_target} PRIVATE "${CMAKE_SOURCE_DIR}/public")
+    target_link_libraries(${test_target} PRIVATE Catch2::Catch2WithMain)
+    if(TARGET ${PROJECT_ID})
+        target_link_libraries(${test_target} PRIVATE ${PROJECT_ID})
+    endif()
+    catch_discover_tests(${test_target})
+endforeach()
