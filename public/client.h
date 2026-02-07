@@ -1,19 +1,21 @@
+#pragma once
+
+#include <memory>
 #include <string>
+#include <utility>
+#include "rpc_client.h"
 
 namespace mini_rpc {
-    class client {
+    class Client {
     public:
-        explicit client(std::string _endpoint);
+        explicit Client(std::string _endpoint);
 
         template<typename... Args>
-        void call(std::string method, Args... args) {
-            
+        void call(std::string method, Args&&... args) {
+            rpc->send_raw(std::move(method), std::forward<Args>(args)...);
         }
-
-        void debug_connect();
-        constexpr void close();
-
     protected:
-        std::string endpoint;
+
+        std::unique_ptr<RpcClient> rpc;
     };
 }

@@ -14,8 +14,6 @@
 #include <sys/wait.h>
 #include <print>
 
-#include "rpc/handler.h"
-
 namespace mini_rpc {
 
     namespace session
@@ -31,7 +29,7 @@ namespace mini_rpc {
     }
 
     void Server::run() {
-            struct sockaddr_un addr;
+        struct sockaddr_un addr;
         int sfd = socket(AF_UNIX, SOCK_STREAM, 0);
         std::println("Server socket fd = {}\n", sfd);
 
@@ -93,6 +91,6 @@ namespace mini_rpc {
 
     Server::~Server()
     {
-        
+
     }
 }

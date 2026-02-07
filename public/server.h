@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <map>
 #include <utility>
@@ -22,10 +24,10 @@ namespace mini_rpc {
             (const buffer& req, buffer res) 
             {
                 // here, serialization must happen but for now
-                auto a = req[0];
-                auto b = req[1];
-                auto result = f(a, b);
-                res.push_back(result);
+                auto a = static_cast<int>(req[0]);
+                auto b = static_cast<int>(req[1]);
+                int result = f(a, b);
+                res.push_back(static_cast<std::byte>(result));
             }
         };
     }

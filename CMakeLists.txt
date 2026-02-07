@@ -17,6 +17,12 @@ FetchContent_MakeAvailable(Catch2)
 
 enable_testing()
 
+include_directories(
+    "${CMAKE_SOURCE_DIR}/src"
+    "${CMAKE_SOURCE_DIR}/src/client"
+    
+)
+
 # Create a shared library from sources in src/ and public/
 file(GLOB_RECURSE SRC_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/src/*.cpp"
@@ -101,8 +107,8 @@ foreach(test_src IN LISTS GLOB_TESTS)
     target_include_directories(${test_target} PRIVATE
         "${CMAKE_SOURCE_DIR}/public"
         "${CMAKE_SOURCE_DIR}/src"
-        "${CMAKE_SOURCE_DIR}/src/rpc"
-        "${CMAKE_SOURCE_DIR}/src/protocol"
+        "${CMAKE_SOURCE_DIR}/src/client"
+        "${CMAKE_SOURCE_DIR}/src/server"
         "${CMAKE_SOURCE_DIR}/src/transport"
     )
     
