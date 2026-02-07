@@ -28,7 +28,7 @@ namespace mini_rpc {
     void Framer::send_message(const std::vector<std::byte>& message)
     {
         uint size = message.size();
-
+        write_all(reinterpret_cast<const std::byte*>(&size), sizeof(size));
         write_all(message.data(), message.size());
     }
 

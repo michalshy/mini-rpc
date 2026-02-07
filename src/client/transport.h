@@ -2,6 +2,9 @@
 
 #include <cstddef>
 #include <sys/types.h>
+#include <vector>
+
+using buffer = std::vector<std::byte>;
 
 namespace mini_rpc {
     class ITransport 

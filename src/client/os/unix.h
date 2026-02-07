@@ -9,6 +9,7 @@ namespace mini_rpc {
     class UnixSocket : public ITransport {
     public:
         explicit UnixSocket(std::string _endpoint);
+        explicit UnixSocket(int fd);
         ~UnixSocket() override;
         
         void connect() override;

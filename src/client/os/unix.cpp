@@ -21,6 +21,12 @@ namespace mini_rpc {
         
     }
 
+    UnixSocket::UnixSocket(int _fd)
+        : fd(_fd)
+    {
+        
+    }
+
     UnixSocket::~UnixSocket()
     {
         close();
