@@ -2,7 +2,6 @@
 
 #include <cstddef>
 #include <memory>
-#include <vector>
 #include "transport.h"
 
 
@@ -11,9 +10,10 @@ namespace mini_rpc {
     class Framer
     {
     public:
-        explicit Framer(std::string endpoint);
+        explicit Framer(std::unique_ptr<ITransport> _transport);
 
-        void send_message(const std::vector<std::byte>& message);
+        void send_message(const buffer& message);
+        buffer recv_message();
 
     protected:
         std::unique_ptr<ITransport> transport;

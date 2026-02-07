@@ -13,6 +13,6 @@ namespace mini_rpc {
         virtual void bind() = 0;
         virtual void listen(int clients) = 0;
         virtual std::unique_ptr<ITransport> accept() = 0;
-        virtual void close();
+        virtual void close() = 0;
     };
 }

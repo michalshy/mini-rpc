@@ -1,5 +1,8 @@
 #pragma once
 
+#include "server/transport_server.h"
+#include <atomic>
+#include <memory>
 #include <string>
 #include <map>
 #include <utility>
@@ -48,8 +51,8 @@ namespace mini_rpc {
         void run(); // blocking
         constexpr void stop(); // async safe  
     protected:
-        std::string endpoint;
-
+        std::unique_ptr<IServerTransport> server_transport;
         std::map<std::string, Handler> handles;
+        std::atomic_bool stopped;
     };
 }

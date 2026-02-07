@@ -1,6 +1,7 @@
 #pragma once
 
 #include "frame.h"
+#include "os/unix.h"
 #include "transport.h"
 #include <cstddef>
 #include <cstdint>
@@ -15,14 +16,10 @@ namespace mini_rpc {
     class RpcClient
     {
     public:
-        explicit RpcClient(std::string _endpoint)
-            : framer(std::make_unique<Framer>(_endpoint))
-        {}
+        explicit RpcClient(std::string _endpoint);
 
         template<typename... Args>
         void send_raw(std::string method, Args&&... args) {
-            // message has to be prepared and passed to framer
-            
             buffer message;
 
             encode_bytes(message, method.data(), method.size());

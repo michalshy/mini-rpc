@@ -3,6 +3,7 @@
 #include "transport.h"
 #include <cstring>
 #include <memory>
+#include <print>
 #include <stdexcept>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -13,6 +14,11 @@ namespace mini_rpc {
         : endpoint(_endpoint)
     {
         
+    }
+
+    UnixServerSocket::~UnixServerSocket()
+    {
+        ::close(listen_fd);
     }
 
     void UnixServerSocket::bind()
