@@ -5,8 +5,12 @@ namespace mini_rpc {
     public:
         explicit client(std::string _endpoint);
 
-        void debug_connect();
+        template<typename... Args>
+        void call(std::string method, Args... args) {
+            
+        }
 
+        void debug_connect();
         constexpr void close();
 
     protected:

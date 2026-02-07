@@ -14,6 +14,8 @@
 #include <sys/wait.h>
 #include <print>
 
+#include "rpc/handler.h"
+
 namespace mini_rpc {
 
     namespace session
@@ -22,13 +24,13 @@ namespace mini_rpc {
         constexpr uint BUFF_SIZE = 1024; 
     }
 
-    server::server(std::string _endpoint)
+    Server::Server(std::string _endpoint)
         : endpoint(_endpoint)
     {
 
     }
-    
-    void server::run() {
+
+    void Server::run() {
             struct sockaddr_un addr;
         int sfd = socket(AF_UNIX, SOCK_STREAM, 0);
         std::println("Server socket fd = {}\n", sfd);
@@ -85,11 +87,12 @@ namespace mini_rpc {
         }
     }
 
-    constexpr void server::register_handler(std::string method) {
-        //TODO: :)
+    constexpr void Server::stop() {
+
     }
 
-    constexpr void server::stop() {
-
+    Server::~Server()
+    {
+        
     }
 }

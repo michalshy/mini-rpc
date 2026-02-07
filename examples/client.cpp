@@ -2,5 +2,6 @@
 
 int main() {
     mini_rpc::client c("/tmp/rpc.sock");
-    c.debug_connect();
+
+    c.call("add", 10, 20);
 }
