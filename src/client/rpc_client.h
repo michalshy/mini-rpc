@@ -1,11 +1,12 @@
 #pragma once
 
 #include "coder.h"
+#include "error.h"
 #include "frame.h"
-#include "transport.h"
+#include "result.h"
 
+#include <cstdint>
 #include <memory>
-#include <print>
 #include <string>
 #include <sys/types.h>
 #include <utility>
@@ -17,7 +18,7 @@ public:
     explicit RpcClient(std::string _endpoint);
 
     template<typename... Args>
-    void send_raw(std::string method, Args&&... args) {
+    Result send_raw(std::string method, Args&&... args) {
         buffer message;
 
         encode_u16(message, method.size());
@@ -26,13 +27,20 @@ public:
 
         framer->send_message(message);
 
-        auto result = framer->recv_message();
-
-        if (result) {
-            std::println("received result!");
-        } else {
-            std::println("did not received :(!");
+        auto response = framer->recv_message();
+        if (!response) {
+            return Result{Error::ConnectionLost};
         }
+
+        auto& bytes = *response;
+        auto status = Error(static_cast<uint8_t>(bytes[0]));
+
+        if (status != Error::None) {
+            return Result{status};
+        }
+
+        buffer payload(bytes.begin() + 1, bytes.end());
+        return Result{std::move(payload)};
     }
 
 protected:

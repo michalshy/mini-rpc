@@ -6,7 +6,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <stdexcept>
-#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
@@ -24,8 +23,9 @@ UnixSocket::~UnixSocket() {
 }
 
 void UnixSocket::connect() {
-    if (fd != -1)
+    if (fd != -1) {
         return;
+    }
 
     fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (fd == -1) {

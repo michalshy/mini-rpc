@@ -2,6 +2,7 @@
 
 #include "coder.h"
 #include "frame.h"
+#include "result.h"
 #include "server/os/unix_server.h"
 #include "server/rpc_server.h"
 
@@ -39,11 +40,11 @@ void Server::run() {
 
         while (!stopped) {
             auto msg = framer.recv_message();
-            if (!msg)
+            if (!msg) {
                 break; // client disconnected cleanly
+            }
 
-            buffer response;
-            encode_u8(response, rpc->handle_message(*msg));
+            buffer response = rpc->handle_message(*msg);
             framer.send_message(response);
         }
     }
