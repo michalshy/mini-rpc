@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <print>
 #include <stdexcept>
 
 namespace mini_rpc {
@@ -18,15 +19,20 @@ namespace mini_rpc {
         write_all(message.data(), message.size());
     }
 
-    buffer Framer::recv_message()
+    std::optional<buffer> Framer::recv_message()
     {
         uint32_t size = 0;
-        read_all(reinterpret_cast<std::byte*>(&size), sizeof(size));
 
-        buffer message(size);
-        read_all(message.data(), size);
+        try {
+            read_all(reinterpret_cast<std::byte*>(&size), sizeof(size));
+        } catch (...) {
+            return std::nullopt; // clean EOF before header
+        }
 
-        return message;
+        buffer msg(size);
+        read_all(msg.data(), size);
+
+        return msg;
     }
 
     void Framer::write_all(const std::byte* data, size_t size) {
@@ -41,12 +47,13 @@ namespace mini_rpc {
     }
 
     void Framer::read_all(std::byte* data, size_t size) {
-        uint32_t read_bytes = 0;
-        while(read_bytes < size) {
+        size_t read_bytes = 0;
+        while (read_bytes < size)
+        {
             size_t n = transport->recv(data + read_bytes, size - read_bytes);
-            if (n == 0) {
-                throw std::runtime_error("connection closed during reading");
-            }
+            if (n == 0)
+                throw std::runtime_error("connection closed during read_all");
+
             read_bytes += n;
         }
     }

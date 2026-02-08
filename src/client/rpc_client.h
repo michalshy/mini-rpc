@@ -1,15 +1,14 @@
 #pragma once
 
 #include "frame.h"
-#include "os/unix.h"
 #include "transport.h"
-#include <cstddef>
-#include <cstdint>
 #include <memory>
+#include <print>
 #include <sys/types.h>
 #include <utility>
-#include <vector>
 #include <string>
+
+#include "coder.h"
 
 namespace mini_rpc {
 
@@ -22,39 +21,21 @@ namespace mini_rpc {
         void send_raw(std::string method, Args&&... args) {
             buffer message;
 
+            encode_u16(message, method.size());
             encode_bytes(message, method.data(), method.size());
             encode_args(message, std::forward<Args>(args)...);
 
             framer->send_message(message);
+
+            auto result = framer->recv_message();
+
+            if(result) {
+                std::println("received result!");
+            } else {
+                std::println("did not received :(!");
+            }
         }
     protected:
         std::unique_ptr<Framer> framer;
-
-        inline void encode_u16(buffer& buf, uint16_t v) {
-            auto p = reinterpret_cast<const std::byte*>(&v);
-            buf.insert(buf.end(), p, p + sizeof(v));
-        }
-
-        inline void encode_u32(buffer& buf, uint32_t v) {
-            auto p = reinterpret_cast<const std::byte*>(&v);
-            buf.insert(buf.end(), p, p + sizeof(v));
-        }
-
-        inline void encode_bytes(buffer& buf, const void* data, size_t size) {
-            auto p = reinterpret_cast<const std::byte*>(data);
-            buf.insert(buf.end(), p, p + size);
-        }
-
-        template<typename... Args>
-        void encode_args(buffer& buf, Args&&... args) {
-            (encode_arg(buf, std::forward<Args>(args)), ...);
-        }
-        
-        template<typename T>
-        requires std::is_trivially_copyable_v<T>
-        void encode_arg(buffer& buf, const T& value) {
-            auto p = reinterpret_cast<const std::byte*>(&value);
-            buf.insert(buf.end(), p, p + sizeof(T));
-        }
     };
 }

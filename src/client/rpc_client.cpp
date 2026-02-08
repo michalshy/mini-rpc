@@ -1,4 +1,5 @@
 #include "rpc_client.h"
+#include "os/unix.h"
 
 namespace mini_rpc {
     RpcClient::RpcClient(std::string _endpoint)

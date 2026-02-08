@@ -13,7 +13,7 @@ namespace mini_rpc {
         explicit Framer(std::unique_ptr<ITransport> _transport);
 
         void send_message(const buffer& message);
-        buffer recv_message();
+        std::optional<buffer> recv_message();
 
     protected:
         std::unique_ptr<ITransport> transport;

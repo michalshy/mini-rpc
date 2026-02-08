@@ -1,6 +1,7 @@
 #include "server.h"
 #include "frame.h"
 #include "server/os/unix_server.h"
+#include "server/rpc_server.h"
 
 #include <cerrno>
 #include <cmath>
@@ -11,6 +12,7 @@
 #include <sys/un.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include "coder.h"
 
 namespace mini_rpc {
 
@@ -20,6 +22,7 @@ namespace mini_rpc {
     }
 
     Server::Server(std::string _endpoint)
+        : rpc(std::make_unique<RpcServer>())
     {
         #ifdef __linux__
             server_transport = std::make_unique<UnixServerSocket>(_endpoint);
@@ -31,11 +34,20 @@ namespace mini_rpc {
     void Server::run() {
         server_transport->bind();
         server_transport->listen(session::MAX_CONNECTIONS);
-
+        
         while(!stopped) {
             auto transport = server_transport->accept();
-
             Framer framer(std::move(transport));
+
+            while (!stopped) {
+                auto msg = framer.recv_message();
+                if (!msg)
+                    break;   // client disconnected cleanly
+
+                buffer response;
+                encode_u8(response, rpc->handle_message(*msg));
+                framer.send_message(response);
+            }
         }
     }
 
