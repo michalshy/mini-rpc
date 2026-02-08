@@ -1,0 +1,1 @@
+Docs about used mechanism, for learning purposes for me.

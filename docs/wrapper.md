@@ -189,6 +189,124 @@ auto wrap_function(F&& func) {
 
 ---
 
+## Twój aktualny `wrap_function` — linia po linii (`rpc_server.h`)
+
+```cpp
+template<class F>                                          // L22
+auto wrap_function(F&& func) {                             // L23
+```
+
+- `template<class F>` — szablon, `F` zostanie wydedukowane z tego co podasz
+  (lambda, wskaźnik do funkcji, funktor)
+  - Ref: https://en.cppreference.com/w/cpp/language/function_template#Template_argument_deduction
+- `F&& func` — **forwarding reference** (nie rvalue reference!). Kiedy `F` jest parametrem
+  szablonu, `F&&` dopasowuje się zarówno do lvalue jak i rvalue.
+  Jeśli podasz lvalue, `F` = `Lambda&`, `F&&` = `Lambda&`.
+  Jeśli podasz rvalue, `F` = `Lambda`, `F&&` = `Lambda&&`.
+  - Ref: https://en.cppreference.com/w/cpp/language/reference#Forwarding_references
+- `auto` jako typ zwracany — kompilator wydedukuje go z `return Handler{...}`
+  - Ref: https://en.cppreference.com/w/cpp/language/function#Return_type_deduction
+
+```cpp
+    return Handler {                                       // L24
+```
+
+- Tworzymy obiekt `Handler` przez aggregate initialization (bo `Handler` to struct
+  z jednym polem `invoke`)
+  - Ref: https://en.cppreference.com/w/cpp/language/aggregate_initialization
+
+```cpp
+        [f = std::forward<F>(func)]                        // L26
+```
+
+- **Capture z init** — tworzymy zmienną `f` wewnątrz lambdy
+  - Ref: https://en.cppreference.com/w/cpp/language/lambda#Lambda_capture
+- `std::forward<F>(func)` — perfect forwarding: jeśli `func` był lvalue, `f` zostanie
+  skopiowane; jeśli rvalue, zostanie przeniesione (move). Dzięki temu lambda przejmuje
+  własność funktora bez zbędnej kopii.
+  - Ref: https://en.cppreference.com/w/cpp/utility/forward
+
+```cpp
+        (const buffer& req, buffer res)                    // L27
+```
+
+- Parametry lambdy — to sygnatura pasująca do `Handler::invoke`
+  (`std::function<void(const buffer&, buffer&)>`)
+- **UWAGA**: w Twoim kodzie `res` jest przekazywany **przez wartość** (`buffer res`),
+  a w `Handler::invoke` jest `buffer&` (referencja). To znaczy że `std::function`
+  przekaże referencję, ale lambda i tak skopiuje bufor — **zmiany w `res` nie trafią
+  do callera**. Prawdopodobnie chcesz tu `buffer& res`.
+
+```cpp
+        {
+            using traits = function_traits<std::decay_t<decltype(f)>>;  // L29
+```
+
+- `decltype(f)` — daje typ zmiennej `f` (to typ lambdy/funktora przechwyconej wyżej)
+  - Ref: https://en.cppreference.com/w/cpp/language/decltype
+- `std::decay_t<...>` — usuwa `const`, referencje, zamienia tablice na wskaźniki.
+  Potrzebne bo `f` wewnątrz const-lambdy ma typ `const Lambda`, a nasz
+  `function_traits` oczekuje czystego typu.
+  - Ref: https://en.cppreference.com/w/cpp/types/decay
+- `using traits = ...` — alias typu, żeby nie pisać tego za każdym razem
+  - Ref: https://en.cppreference.com/w/cpp/language/type_alias
+
+```cpp
+            using ArgsTuple = typename traits::args_tuple;              // L30
+```
+
+- Wyciągamy tuple typów argumentów. Np. jeśli `f` to `[](int a, int b) -> int`,
+  to `ArgsTuple` = `std::tuple<int, int>`
+- `typename` jest wymagane bo `traits` zależy od parametru szablonu, więc kompilator
+  nie wie czy `args_tuple` to typ czy wartość — `typename` mówi mu "to jest typ"
+  - Ref: https://en.cppreference.com/w/cpp/language/dependent_name
+
+```cpp
+            int offset = 0;                                             // L32
+```
+
+- Offset startuje od 0, bo `req` zawiera **tylko argumenty** (nagłówek z nazwą metody
+  został już obcięty w `handle_message`)
+
+```cpp
+            ArgsTuple args = decode_args<ArgsTuple>(req.data(), offset); // L34
+```
+
+- `req.data()` — zwraca `const std::byte*`, surowy wskaźnik na dane bufora
+  - Ref: https://en.cppreference.com/w/cpp/container/vector/data
+- `decode_args<ArgsTuple>(...)` — wywołuje generyczną funkcję dekodującą (z `wrapper.h`),
+  która na podstawie typów w `ArgsTuple` wie ile bajtów przeczytać i jak je zinterpretować
+- Po wywołaniu `offset` jest przesunięty o łączny rozmiar wszystkich argumentów
+
+```cpp
+            if constexpr (std::is_void_v<typename traits::return_type>) { // L36
+                std::apply(f, args);                                      // L37
+```
+
+- `if constexpr` — compile-time if. Kompilator **usuwa** gałąź, która nie pasuje —
+  nie jest nawet kompilowana. Zwykły `if` nie zadziałałby, bo `encode_arg(res, result)`
+  nie skompilowałby się dla `void`.
+  - Ref: https://en.cppreference.com/w/cpp/language/if#Constexpr_if
+- `std::is_void_v<typename traits::return_type>` — sprawdza czy funkcja zwraca `void`
+  - Ref: https://en.cppreference.com/w/cpp/types/is_void
+- `std::apply(f, args)` — rozpakowuje tuple `args` i wywołuje `f` z tymi argumentami.
+  Dla `args = tuple{1, 2}` robi `f(1, 2)`
+  - Ref: https://en.cppreference.com/w/cpp/utility/apply
+
+```cpp
+            } else {
+                auto result = std::apply(f, args);                        // L39
+                encode_arg(res, result);                                  // L40
+            }
+```
+
+- Gałąź dla funkcji zwracających wartość
+- `auto result` — kompilator wydedukuje typ z tego co zwróci `f`
+- `encode_arg(res, result)` — serializuje wynik do bufora odpowiedzi
+  (z `coder.h`, używa `memcpy` + `sizeof`)
+
+---
+
 ## Jak to działa end-to-end
 
 ```cpp
