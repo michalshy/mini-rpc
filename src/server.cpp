@@ -50,7 +50,7 @@ void Server::run() {
     }
 }
 
-constexpr void Server::stop() {
+void Server::stop() {
     stopped = true;
 }
 

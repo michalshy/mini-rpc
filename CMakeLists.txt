@@ -98,26 +98,17 @@ file(GLOB GLOB_TESTS CONFIGURE_DEPENDS
 list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
 include(Catch)
 
-foreach(test_src IN LISTS GLOB_TESTS)
-    get_filename_component(test_name ${test_src} NAME_WE)
-    set(test_target "${test_name}_exe")
-    add_executable(${test_target} ${test_src})
-    
-    # Tests get access to both public/ and src/ directories
-    target_include_directories(${test_target} PRIVATE
+if(GLOB_TESTS)
+    add_executable(tests ${GLOB_TESTS})
+    target_include_directories(tests PRIVATE
         "${CMAKE_SOURCE_DIR}/public"
         "${CMAKE_SOURCE_DIR}/src"
         "${CMAKE_SOURCE_DIR}/src/client"
         "${CMAKE_SOURCE_DIR}/src/server"
-        "${CMAKE_SOURCE_DIR}/src/transport"
     )
-    
-    target_link_libraries(${test_target} PRIVATE Catch2::Catch2WithMain)
-    
-    # Link against the object library for full access to internals
+    target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
     if(TARGET ${PROJECT_ID}_objs)
-        target_link_libraries(${test_target} PRIVATE ${PROJECT_ID}_objs)
+        target_link_libraries(tests PRIVATE ${PROJECT_ID}_objs)
     endif()
-    
-    catch_discover_tests(${test_target})
-endforeach()
+    catch_discover_tests(tests)
+endif()

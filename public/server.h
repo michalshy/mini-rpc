@@ -25,7 +25,7 @@ public:
     /// Start accepting connection. Blocks thread
     void run();
     /// Signal server to stop
-    constexpr void stop();
+    void stop();
 
 protected:
     std::unique_ptr<IServerTransport> server_transport;
