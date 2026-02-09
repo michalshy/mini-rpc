@@ -7,8 +7,10 @@
 
 #include <functional>
 #include <map>
+#include <string>
 #include <tuple>
 #include <type_traits>
+
 
 namespace mini_rpc {
 

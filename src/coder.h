@@ -71,7 +71,7 @@ Tuple decode_args_impl(const std::byte* data, int& offset, std::index_sequence<I
 
 template<typename Tuple>
 Tuple decode_args(const std::byte* data, int& offset) {
-    return decode_args_impl<Tuple>(
-        data, offset, std::make_index_sequence<std::tuple_size_v<Tuple>>{});
+    return decode_args_impl<Tuple>(data, offset,
+                                   std::make_index_sequence<std::tuple_size_v<Tuple>>{});
 }
 } // namespace mini_rpc

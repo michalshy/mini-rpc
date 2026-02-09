@@ -8,8 +8,11 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <sys/types.h>
 #include <utility>
+
+#ifdef __linux___
+#include <sys/types.h>
+#endif
 
 namespace mini_rpc {
 

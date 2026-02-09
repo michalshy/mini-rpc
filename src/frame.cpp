@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <print>
+#include <optional>
 #include <stdexcept>
 
 namespace mini_rpc {
@@ -13,7 +13,7 @@ namespace mini_rpc {
 Framer::Framer(std::unique_ptr<ITransport> _transport) : transport(std::move(_transport)) {}
 
 void Framer::send_message(const buffer& message) {
-    uint size = message.size();
+    size_t size = message.size();
     write_all(reinterpret_cast<const std::byte*>(&size), sizeof(size));
     write_all(message.data(), message.size());
 }
@@ -34,7 +34,7 @@ std::optional<buffer> Framer::recv_message() {
 }
 
 void Framer::write_all(const std::byte* data, size_t size) {
-    uint send_bytes = 0;
+    size_t send_bytes = 0;
     while (send_bytes < size) {
         size_t n = transport->send(data + send_bytes, size - send_bytes);
         if (n == 0) {

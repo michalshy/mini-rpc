@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef __linux__
+
 #include "client/transport.h"
 
 #include <cstddef>
@@ -22,3 +24,5 @@ protected:
     std::string endpoint;
 };
 } // namespace mini_rpc
+
+#endif

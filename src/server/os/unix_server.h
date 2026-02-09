@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef __linux__
+
 #include "server/transport_server.h"
 
 namespace mini_rpc {
@@ -18,4 +20,6 @@ protected:
     int listen_fd{-1};
     std::string endpoint;
 };
+
 } // namespace mini_rpc
+#endif

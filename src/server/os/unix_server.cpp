@@ -1,5 +1,7 @@
 #include "unix_server.h"
 
+#ifdef __linux__
+
 #include "os/unix.h"
 #include "transport.h"
 
@@ -53,3 +55,5 @@ void UnixServerSocket::close() {
     }
 }
 } // namespace mini_rpc
+
+#endif

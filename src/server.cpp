@@ -6,27 +6,27 @@
 #include "server/os/unix_server.h"
 #include "server/rpc_server.h"
 
-#include <cerrno>
-#include <cmath>
-#include <cstdlib>
+#include <cstdint>
 #include <memory>
+
+#ifdef __linux__
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
 #include <sys/wait.h>
-#include <unistd.h>
+#endif
 
 namespace mini_rpc {
 
 namespace session {
-constexpr uint MAX_CONNECTIONS = 5;
+constexpr uint8_t MAX_CONNECTIONS = 5;
 }
 
 Server::Server(std::string _endpoint) : rpc(std::make_unique<RpcServer>()) {
 #ifdef __linux__
     server_transport = std::make_unique<UnixServerSocket>(_endpoint);
 #else
-    server_transport = std::make_unique<UnixServerSocket>(_endpoint);
+    // Win impl coming
 #endif
 }
 

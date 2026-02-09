@@ -7,6 +7,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# On Windows, automatically export all symbols from DLLs
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
 include(FetchContent)
 FetchContent_Declare(
     Catch2
@@ -18,9 +21,10 @@ FetchContent_MakeAvailable(Catch2)
 enable_testing()
 
 include_directories(
+    "${CMAKE_SOURCE_DIR}/public"
     "${CMAKE_SOURCE_DIR}/src"
     "${CMAKE_SOURCE_DIR}/src/client"
-    
+    "${CMAKE_SOURCE_DIR}/src/server"
 )
 
 # Create a shared library from sources in src/ and public/
@@ -53,6 +57,10 @@ set(LIB_SOURCES ${SRC_SOURCES} ${PUB_SOURCES})
 
 # normalize project name to a target-friendly identifier
 string(REPLACE "-" "_" PROJECT_ID ${PROJECT_NAME})
+
+if(MINGW)
+    link_libraries(c++print)
+endif()
 
 if(LIB_SOURCES)
     # Create an OBJECT library for internal access

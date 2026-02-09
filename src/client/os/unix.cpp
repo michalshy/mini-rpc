@@ -1,5 +1,7 @@
 #include "unix.h"
 
+#ifdef __linux__
+
 #include <cerrno>
 #include <cmath>
 #include <cstddef>
@@ -77,3 +79,5 @@ void UnixSocket::close() {
 }
 
 } // namespace mini_rpc
+
+#endif
