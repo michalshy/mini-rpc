@@ -89,7 +89,6 @@ if(NOT EXISTS "${CMAKE_SOURCE_DIR}/tests")
     file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/tests")
 endif()
 
-# Build each test source file as a separate executable and register with CTest
 file(GLOB GLOB_TESTS CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/tests/*.cpp"
     "${CMAKE_SOURCE_DIR}/tests/*.cxx"

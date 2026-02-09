@@ -1,75 +1,149 @@
 # mini-rpc
 
-A lightweight, minimal RPC (Remote Procedure Call) framework written in modern C++ (C++23) providing cross platform RPC communication.
+A lightweight RPC framework written in modern C++23. Register a function on the server, call it from the client — that's it.
 
-## Overview
+## Quick Example
 
-**mini-rpc** is a C++23 project that provides a simple client-server architecture for RPC communication. It's designed to be a minimal but functional foundation for building RPC-based applications.
+```cpp
+#include "server.h"
+#include "client.h"
+#include <thread>
+#include <print>
 
-### Key Features
+int main() {
+    constexpr auto endpoint = "/tmp/mini_rpc_showcase.sock";
 
-- **Modern C++23** - Written using the latest C++ standard
-- **CMake Build System** - Easy to build and integrate
-- **Catch2 Testing** - Comprehensive test framework included
-- **Clean Architecture** - Separated public headers and implementation
+    // --- Server setup ---
+    mini_rpc::Server server(endpoint);
 
-## Project Structure
+    server.register_handler("add", [](int a, int b) -> int {
+        return a + b;
+    });
 
+    server.register_handler("multiply", [](double a, double b) -> double {
+        return a * b;
+    });
+
+    // Handlers can throw — the client receives Error::HandlerError
+    server.register_handler("divide", [](int a, int b) -> int {
+        if (b == 0) throw std::runtime_error("division by zero");
+        return a / b;
+    });
+
+    server.register_handler("ping", []() {
+        std::println("[server] got pinged");
+    });
+
+    std::thread server_thread([&] { server.run(); });
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    // --- Client usage ---
+    mini_rpc::Client client(endpoint);
+
+    // Basic call with return value
+    auto sum = client.call("add", 10, 32);
+    std::println("add(10, 32) = {}", sum.as<int>());
+
+    // Different types
+    auto product = client.call("multiply", 3.14, 2.0);
+    std::println("multiply(3.14, 2.0) = {}", product.as<double>());
+
+    // Error handling — handler throws
+    auto bad_div = client.call("divide", 1, 0);
+    if (!bad_div.ok()) {
+        std::println("divide(1, 0) failed: HandlerError ({})",
+                     static_cast<int>(bad_div.error()));
+    }
+
+    // Error handling — method doesn't exist
+    auto missing = client.call("nonexistent", 42);
+    if (!missing.ok()) {
+        std::println("nonexistent method: MethodNotFound ({})",
+                     static_cast<int>(missing.error()));
+    }
+
+    // Safe extraction with try_as (never throws)
+    auto result = client.call("add", 5, 5);
+    if (auto val = result.try_as<int>()) {
+        std::println("add(5, 5) = {}", *val);
+    }
+
+    // Void call
+    client.call("ping");
+
+    server.stop();
+    server_thread.join();
+}
 ```
-mini-rpc/
-├── public/              # Public header files
-│   ├── client.h        # Client API
-│   ├── server.h        # Server API
-│   └── errors.h        # Error definitions
-├── src/                # Implementation files
-│   ├── client.cpp      # Client implementation
-│   ├── server.cpp      # Server implementation
-│   └── errors.cpp      # Error implementations
-├── examples/           # Example applications
-│   ├── client.cpp      # Example client usage
-│   └── server.cpp      # Example server usage
-├── tests/              # Test suite
-│   └── test_sample.cpp # Sample tests
-├── CMakeLists.txt      # Build configuration
-└── README.md           # This file
+
+**Output:**
+```
+add(10, 32) = 42
+multiply(3.14, 2.0) = 6.28
+divide(1, 0) failed: HandlerError (3)
+nonexistent method: MethodNotFound (1)
+add(5, 5) = 10
+[server] got pinged
+```
+
+## Features
+
+- **Type-safe RPC** — register any callable, arguments are serialized automatically
+- **Result type** — `as<T>()` throws on error, `try_as<T>()` returns `std::optional` (never throws)
+- **Error propagation** — handler exceptions become `Error::HandlerError` on the client
+- **Zero dependencies** — only the C++23 standard library (Catch2 for tests only)
+- **Unix socket transport** — local IPC via `/tmp/*.sock`
+
+## Error Codes
+
+| Error | Value | Meaning |
+|-------|-------|---------|
+| `None` | 0 | Success |
+| `MethodNotFound` | 1 | Server has no handler for this method |
+| `InvalidArguments` | 2 | Argument decoding failed |
+| `HandlerError` | 3 | Handler threw an exception |
+| `Internal` | 4 | Internal library error |
+| `ConnectionLost` | 5 | Socket disconnected |
+| `InvalidPayload` | 6 | `as<T>()` size mismatch |
+
+## Result API
+
+```cpp
+auto result = client.call("method", args...);
+
+result.ok()          // true if call succeeded
+result.error()       // the Error enum value (only valid if !ok())
+result.as<int>()     // extract value — throws on error or type mismatch
+result.try_as<int>() // extract value — returns std::nullopt on failure
+```
+
+`as<T>()` and `try_as<T>()` mirror `std::get` and `std::get_if` from `std::variant`.
+
+## Building
+
+```bash
+mkdir -p build && cd build
+cmake ..
+cmake --build .
+```
+
+## Running Tests
+
+```bash
+cd build
+ctest
 ```
 
 ## Requirements
 
-- **C++23 compiler** (GCC 14+ or equivalent)
-- **CMake 3.14+**
+- C++23 compiler (GCC 13+ or Clang 18+)
+- CMake 3.14+
 
-### Build Dependencies
+## Wire Protocol
 
-- **Catch2 v3.4.0** - Automatically fetched via CMake FetchContent
-
-## Building
-
-### Build the Project
-
-```bash
-cd mini-rpc
-mkdir -p build
-cd build
-cmake ..
-ninja  # or: make
 ```
+Request:  [method_name_size:u16][method_name:bytes][args:bytes]
+Response: [error:u8][payload:bytes]
 
-### Run Tests
-
-```bash
-cd build
-ctest  # Run all tests
-# or run a specific test
-./test_sample_exe
+Framed as: [message_size:u32][message:bytes]
 ```
-
-### Build Examples
-
-The build system automatically creates example executables:
-
-```bash
-./build/server  # Start the server
-./build/client  # Start the client (in another terminal)
-```
-
