@@ -12,7 +12,7 @@ public:
     ~UnixServerSocket() override;
 
     void bind() override;
-    void listen(int backlog) override;
+    void listen() override;
     std::unique_ptr<ITransport> accept() override;
     void close() override;
 

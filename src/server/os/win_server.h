@@ -8,13 +8,13 @@
 
 namespace mini_rpc {
 
-class WindowsServerSocket : IServerTransport {
+class WindowsServerSocket : public IServerTransport {
 public:
     explicit WindowsServerSocket(std::string _endpoint);
     ~WindowsServerSocket() override;
 
     void bind() override;
-    void listen(int backlog) override;
+    void listen() override;
     std::unique_ptr<ITransport> accept() override;
     void close() override;
 };

@@ -35,8 +35,8 @@ void UnixServerSocket::bind() {
         throw std::runtime_error("bind() failed");
 }
 
-void UnixServerSocket::listen(int clients) {
-    if (::listen(listen_fd, clients) == -1)
+void UnixServerSocket::listen() {
+    if (::listen(listen_fd, session::MAX_CONNECTIONS) == -1)
         throw std::runtime_error("listen() failed");
 }
 
