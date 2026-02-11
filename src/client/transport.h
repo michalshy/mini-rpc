@@ -1,11 +1,6 @@
 #pragma once
 
 #include <cstddef>
-
-#ifdef __linux__
-#include <sys/types.h>
-#endif
-
 #include <vector>
 
 using buffer = std::vector<std::byte>;

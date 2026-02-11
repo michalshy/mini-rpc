@@ -9,11 +9,13 @@
 #include <cstdint>
 #include <memory>
 
-#ifdef __linux__
+#ifdef MINI_RPC_UNIX
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
 #include <sys/wait.h>
+#elif defined(MINI_RPC_WIN)
+
 #endif
 
 namespace mini_rpc {
@@ -23,9 +25,9 @@ constexpr uint8_t MAX_CONNECTIONS = 5;
 }
 
 Server::Server(std::string _endpoint) : rpc(std::make_unique<RpcServer>()) {
-#ifdef __linux__
+#ifdef MINI_RPC_UNIX
     server_transport = std::make_unique<UnixServerSocket>(_endpoint);
-#else
+#elif defined(MINI_RPC_WIN)
     // Win impl coming
 #endif
 }

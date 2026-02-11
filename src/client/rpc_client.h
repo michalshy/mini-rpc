@@ -10,8 +10,10 @@
 #include <string>
 #include <utility>
 
-#ifdef __linux___
+// PLATFORM INCLUDES
+#ifdef MINI_RPC_UNIX
 #include <sys/types.h>
+#elif defined(MINI_RPC_WIN)
 #endif
 
 namespace mini_rpc {

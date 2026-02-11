@@ -1,6 +1,6 @@
 #include "unix.h"
 
-#ifdef __linux__
+#ifdef MINI_RPC_UNIX
 
 #include <cerrno>
 #include <cmath>

@@ -1,6 +1,6 @@
 #include "unix_server.h"
 
-#ifdef __linux__
+#ifdef MINI_RPC_UNIX
 
 #include "os/unix.h"
 #include "transport.h"

@@ -10,6 +10,13 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # On Windows, automatically export all symbols from DLLs
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
+# Platform detection
+if(UNIX)
+    add_compile_definitions(MINI_RPC_UNIX)
+elseif(WIN32)
+    add_compile_definitions(MINI_RPC_WIN)
+endif()
+
 include(FetchContent)
 FetchContent_Declare(
     Catch2

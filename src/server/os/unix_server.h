@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef __linux__
+#ifdef MINI_RPC_UNIX
 
 #include "server/transport_server.h"
 
