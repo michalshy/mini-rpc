@@ -65,8 +65,8 @@ set(LIB_SOURCES ${SRC_SOURCES} ${PUB_SOURCES})
 # normalize project name to a target-friendly identifier
 string(REPLACE "-" "_" PROJECT_ID ${PROJECT_NAME})
 
-if(MINGW)
-    link_libraries(c++print)
+if(WIN32)
+    link_libraries(ws2_32)
 endif()
 
 if(LIB_SOURCES)

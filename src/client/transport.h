@@ -3,8 +3,6 @@
 #include <cstddef>
 #include <vector>
 
-using buffer = std::vector<std::byte>;
-
 namespace mini_rpc {
 class ITransport {
 public:

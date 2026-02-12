@@ -2,14 +2,13 @@
 
 #include "wrapper.h"
 
+#include "common.h"
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <tuple>
 #include <utility>
 #include <vector>
-
-using buffer = std::vector<std::byte>;
 
 namespace mini_rpc {
 

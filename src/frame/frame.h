@@ -1,10 +1,11 @@
 #pragma once
 
+#include "common.h"
 #include "transport.h"
-
 #include <cstddef>
 #include <memory>
 #include <optional>
+
 
 namespace mini_rpc {
 

@@ -11,7 +11,6 @@
 #include <tuple>
 #include <type_traits>
 
-
 namespace mini_rpc {
 
 struct Handler {

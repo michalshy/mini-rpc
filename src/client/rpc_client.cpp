@@ -3,8 +3,13 @@
 #include "os/unix.h"
 #include "os/win.h"
 
+#include "platform/platform.h"
+
 namespace mini_rpc {
 RpcClient::RpcClient(std::string _endpoint) {
+
+    platform_init();
+
 #ifdef MINI_RPC_UNIX
     auto transport = std::make_unique<UnixSocket>(_endpoint);
     transport->connect();

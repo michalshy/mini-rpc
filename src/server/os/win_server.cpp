@@ -1,18 +1,19 @@
 #include "win_server.h"
+#include <winsock2.h>
 
 #ifdef MINI_RPC_WIN
-
-#include <windows.h>
-
-#include <WinBase.h>
 
 namespace mini_rpc {
 
 WindowsServerSocket::WindowsServerSocket(std::string _endpoint) {
-    HANDLE a = CreateNamedPipeA(_endpoint.c_str(), PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE,
-                                session::MAX_CONNECTIONS, 1024, 1024, 0, NULL);
+    WSADATA wsa;
+    WSAStartup(MAKEWORD(2, 2), &wsa);
+
+    sock = ::socket(AF_INET, SOCK_STREAM, 0);
 }
-WindowsServerSocket::~WindowsServerSocket() {}
+WindowsServerSocket::~WindowsServerSocket() {
+    //
+}
 
 void WindowsServerSocket::bind() {}
 void WindowsServerSocket::listen() {}
