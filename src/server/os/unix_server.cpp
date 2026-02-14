@@ -43,7 +43,7 @@ void UnixServerSocket::listen() {
 std::unique_ptr<ITransport> UnixServerSocket::accept() {
     int fd = ::accept(listen_fd, nullptr, nullptr);
     if (fd == -1)
-        throw std::runtime_error("accept() failed");
+        return nullptr;
 
     return std::make_unique<UnixSocket>(fd);
 }

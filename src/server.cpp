@@ -30,6 +30,9 @@ void Server::run() {
 
     while (!stopped) {
         auto transport = server_transport->accept();
+        if (!transport)
+            break;
+
         Framer framer(std::move(transport));
 
         while (!stopped) {
@@ -46,6 +49,7 @@ void Server::run() {
 
 void Server::stop() {
     stopped = true;
+    server_transport->close();
 }
 
 Server::~Server() {}

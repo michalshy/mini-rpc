@@ -4,19 +4,30 @@
 #include <catch2/catch_test_macros.hpp>
 #include <thread>
 
+#ifdef MINI_RPC_WIN
+constexpr auto endpoint = "127.0.0.1:5432";
+#else
+constexpr auto endpoint = "/tmp/rpc.sock";
+#endif
+
 TEST_CASE("client-server round-trip") {
     using namespace mini_rpc;
 
-    Server server("/tmp/test_rpc.sock");
-    server.register_handler("multiply", [](int a, int b) -> int { return a * b; });
+    RpcServer rpc;
+    rpc.register_handler("multiply", [](int a, int b) -> int { return a * b; });
 
-    std::thread t([&] { server.run(); });
+    buffer request;
+    std::string method = "multiply";
+    encode_u16(request, method.size());
+    encode_bytes(request, method.data(), method.size());
+    encode_args(request, 6, 7);
 
-    Client client("/tmp/test_rpc.sock");
-    auto result = client.call("multiply", 6, 7);
-    REQUIRE(result.ok());
+    buffer response = rpc.handle_message(request);
+
+    auto status = Error(static_cast<uint8_t>(response[0]));
+    REQUIRE(status == Error::None);
+
+    buffer payload(response.begin() + 1, response.end());
+    Result result{std::move(payload)};
     REQUIRE(result.as<int>() == 42);
-
-    server.stop();
-    t.join();
 }

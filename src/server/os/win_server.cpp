@@ -35,15 +35,17 @@ void WindowsServerSocket::listen() {
         throw std::runtime_error("listen() failed");
 }
 std::unique_ptr<ITransport> WindowsServerSocket::accept() {
-    SOCKET fd = ::accept(sock, nullptr, nullptr);
-    if (fd == SOCKET_ERROR)
-        throw std::runtime_error("accept() failed");
+    SOCKET _sock = ::accept(sock, nullptr, nullptr);
+    if (_sock == INVALID_SOCKET)
+        return nullptr;
 
-    return std::make_unique<WindowsSocket>(fd);
+    return std::make_unique<WindowsSocket>(_sock);
 }
 void WindowsServerSocket::close() {
     if (sock != INVALID_SOCKET) {
+        ::shutdown(sock, SD_BOTH);
         ::closesocket(sock);
+        sock = INVALID_SOCKET;
     }
 }
 } // namespace mini_rpc
