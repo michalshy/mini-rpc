@@ -20,6 +20,7 @@ public:
     void close() override;
 
 protected:
+    std::string endpoint;
     SOCKET sock;
 };
 } // namespace mini_rpc

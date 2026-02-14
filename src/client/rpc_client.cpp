@@ -12,10 +12,10 @@ RpcClient::RpcClient(std::string _endpoint) {
 
 #ifdef MINI_RPC_UNIX
     auto transport = std::make_unique<UnixSocket>(_endpoint);
-    transport->connect();
 #elif defined(MINI_RPC_WIN)
     auto transport = std::make_unique<WindowsSocket>(_endpoint);
 #endif
+    transport->connect();
     framer = std::make_unique<Framer>(std::move(transport));
 }
 } // namespace mini_rpc

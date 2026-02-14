@@ -4,9 +4,13 @@
 #include <print>
 #include <thread>
 
-int main() {
-    constexpr auto endpoint = "/tmp/mini_rpc_showcase.sock";
+#ifdef MINI_RPC_WIN
+constexpr auto endpoint = "127.0.0.1:5432";
+#else
+constexpr auto endpoint = "/tmp/rpc.sock";
+#endif
 
+int main() {
     mini_rpc::Server server(endpoint);
 
     // Arithmetic handlers
