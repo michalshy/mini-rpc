@@ -3,7 +3,6 @@
 #include "transport.h"
 
 #include <cstddef>
-#include <cstdint>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -19,7 +18,7 @@ void Framer::send_message(const buffer& message) {
 }
 
 std::optional<buffer> Framer::recv_message() {
-    uint32_t size = 0;
+    size_t size = 0;
 
     try {
         read_all(reinterpret_cast<std::byte*>(&size), sizeof(size));

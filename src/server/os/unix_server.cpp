@@ -7,7 +7,6 @@
 
 #include <cstring>
 #include <memory>
-#include <print>
 #include <stdexcept>
 #include <sys/socket.h>
 #include <sys/un.h>

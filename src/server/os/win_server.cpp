@@ -1,10 +1,10 @@
 #include "win_server.h"
+
+#ifdef MINI_RPC_WIN
 #include "client/os/win.h"
-#include <print>
 #include <stdexcept>
 #include <winsock2.h>
 
-#ifdef MINI_RPC_WIN
 namespace mini_rpc {
 
 WindowsServerSocket::WindowsServerSocket(std::string _endpoint) : endpoint(_endpoint) {}
