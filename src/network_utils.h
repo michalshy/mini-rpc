@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -15,6 +16,9 @@ namespace mini_rpc {
 // Returns pair of (host, port)
 inline std::pair<std::string, std::string> parse_ipv4_endpoint(std::string_view endpoint) {
     auto colon = endpoint.rfind(':');
+    if (colon == std::string_view::npos) {
+        throw std::runtime_error("Invalid endpoint format, expected 'host:port'");
+    }
     std::string host(endpoint.substr(0, colon));
     std::string port(endpoint.substr(colon + 1));
     return {host, port};
@@ -28,7 +32,11 @@ inline sockaddr_in create_sockaddr_in(std::string_view endpoint) {
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
     addr.sin_port = htons(static_cast<u_short>(std::stoi(port)));
-    inet_pton(AF_INET, host.c_str(), &addr.sin_addr);
+    
+    int result = inet_pton(AF_INET, host.c_str(), &addr.sin_addr);
+    if (result != 1) {
+        throw std::runtime_error("Invalid IP address format");
+    }
     
     return addr;
 }

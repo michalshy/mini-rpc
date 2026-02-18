@@ -26,8 +26,10 @@ public:
     template<typename... Args>
     Result send_raw(std::string_view method, Args&&... args) {
         buffer message;
-        // Reserve estimated capacity to avoid reallocations
-        message.reserve(sizeof(uint16_t) + method.size() + (sizeof(Args) + ...));
+        // Reserve estimated capacity to reduce reallocations
+        // Estimate: method size prefix + method name + arguments
+        constexpr size_t estimated_args_size = (sizeof(std::decay_t<Args>) + ...);
+        message.reserve(sizeof(uint16_t) + method.size() + estimated_args_size);
 
         encode_u16(message, method.size());
         encode_bytes(message, method.data(), method.size());
