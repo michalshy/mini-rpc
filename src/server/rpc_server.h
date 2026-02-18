@@ -8,6 +8,7 @@
 #include <functional>
 #include <map>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <type_traits>
 
@@ -52,6 +53,6 @@ public:
     buffer handle_message(const buffer& message);
 
 protected:
-    std::map<std::string, Handler> handles;
+    std::map<std::string, Handler, std::less<>> handles;
 };
 } // namespace mini_rpc

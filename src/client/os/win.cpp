@@ -2,6 +2,7 @@
 
 #ifdef MINI_RPC_WIN
 
+#include "network_utils.h"
 #include <WinSock2.h>
 #include <stdexcept>
 
@@ -23,14 +24,7 @@ void WindowsSocket::connect() {
         throw std::runtime_error("socket() failed");
     }
 
-    auto colon = endpoint.rfind(':');
-    std::string host = endpoint.substr(0, colon);
-    std::string port = endpoint.substr(colon + 1);
-
-    sockaddr_in addr{};
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(static_cast<u_short>(std::stoi(port)));
-    inet_pton(AF_INET, host.c_str(), &addr.sin_addr);
+    sockaddr_in addr = create_sockaddr_in(endpoint);
 
     if (::connect(sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == SOCKET_ERROR) {
         ::closesocket(sock);
@@ -66,6 +60,7 @@ size_t WindowsSocket::recv(std::byte* data, size_t size) {
 void WindowsSocket::close() {
     if (sock != INVALID_SOCKET) {
         ::closesocket(sock);
+        sock = INVALID_SOCKET;
     }
 }
 } // namespace mini_rpc

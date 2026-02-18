@@ -22,7 +22,7 @@ UnixServerSocket::~UnixServerSocket() {
 void UnixServerSocket::bind() {
     listen_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
     if (listen_fd == -1)
-        throw std::runtime_error("bind() failed");
+        throw std::runtime_error("socket() failed");
 
     ::unlink(endpoint.c_str());
 
