@@ -1,1 +1,0 @@
-/home/runner/work/mini-rpc/.codeql-scratch/dbs/cpp/working/autobuild/bin/c++ -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/server.dir/link.d CMakeFiles/server.dir/examples/server.cpp.o -o server  -Wl,-rpath,/home/runner/work/mini-rpc/mini-rpc/_codeql_build_dir libmini_rpc.so
