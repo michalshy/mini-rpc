@@ -1,0 +1,86 @@
+name: Tests
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+permissions:
+  contents: read
+
+jobs:
+  test-linux:
+    name: Test on Linux with ${{ matrix.compiler }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc-14, clang-19]
+        include:
+          - compiler: gcc-14
+            cc: gcc-14
+            cxx: g++-14
+          - compiler: clang-19
+            cc: clang-19
+            cxx: clang++-19
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install GCC 14
+      if: matrix.compiler == 'gcc-14'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-14 g++-14
+
+    - name: Install Clang 19
+      if: matrix.compiler == 'clang-19'
+      run: |
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh 19
+
+    - name: Configure CMake
+      env:
+        CC: ${{ matrix.cc }}
+        CXX: ${{ matrix.cxx }}
+      run: |
+        mkdir -p build
+        cd build
+        cmake ..
+
+    - name: Build
+      run: |
+        cd build
+        cmake --build . --target tests
+
+    - name: Run Tests
+      run: |
+        cd build
+        ctest --output-on-failure
+
+  test-windows:
+    name: Test on Windows with MSVC
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure CMake
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+
+    - name: Build
+      run: |
+        cd build
+        cmake --build . --target tests --config Release
+
+    - name: Run Tests
+      run: |
+        cd build
+        ctest --output-on-failure --build-config Release
