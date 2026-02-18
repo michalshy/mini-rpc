@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 
 // PLATFORM INCLUDES
@@ -23,8 +24,10 @@ public:
     explicit RpcClient(std::string _endpoint);
 
     template<typename... Args>
-    Result send_raw(std::string method, Args&&... args) {
+    Result send_raw(std::string_view method, Args&&... args) {
         buffer message;
+        // Reserve estimated capacity to avoid reallocations
+        message.reserve(sizeof(uint16_t) + method.size() + (sizeof(Args) + ...));
 
         encode_u16(message, method.size());
         encode_bytes(message, method.data(), method.size());

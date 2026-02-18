@@ -14,7 +14,7 @@ buffer RpcServer::handle_message(const buffer& message) {
     uint16_t method_size = decode_u16(message.data());
     offset += sizeof(method_size);
 
-    std::string method_name(reinterpret_cast<const char*>(message.data() + offset), method_size);
+    std::string_view method_name(reinterpret_cast<const char*>(message.data() + offset), method_size);
     offset += method_size;
 
     buffer args_buf(message.begin() + offset, message.end());
