@@ -2,6 +2,7 @@
 
 #include "server/rpc_server.h"
 #include "server/transport_server.h"
+#include "worker_pool.h"
 
 #include <atomic>
 #include <memory>
@@ -30,7 +31,10 @@ public:
 protected:
     std::unique_ptr<IServerTransport> server_transport;
     std::unique_ptr<RpcServer> rpc;
+    std::unique_ptr<WorkerPool> pool;
 
     std::atomic_bool stopped;
+
+    std::string endpoint;
 };
 } // namespace mini_rpc

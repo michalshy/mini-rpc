@@ -6,7 +6,6 @@
 #include <memory>
 #include <optional>
 
-
 namespace mini_rpc {
 
 class Framer {
@@ -15,6 +14,7 @@ public:
 
     void send_message(const buffer& message);
     std::optional<buffer> recv_message();
+    void close();
 
 protected:
     std::unique_ptr<ITransport> transport;

@@ -21,6 +21,7 @@ namespace mini_rpc {
 class RpcClient {
 public:
     explicit RpcClient(std::string _endpoint);
+    ~RpcClient();
 
     template<typename... Args>
     Result send_raw(std::string method, Args&&... args) {

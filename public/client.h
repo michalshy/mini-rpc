@@ -11,6 +11,7 @@ namespace mini_rpc {
 class Client {
 public:
     explicit Client(std::string _endpoint);
+    ~Client() = default;
 
     template<typename... Args>
     Result call(std::string method, Args&&... args) {

@@ -32,30 +32,32 @@ int main() {
     // Give server time to bind
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-    mini_rpc::Client client(endpoint);
+    {
+        mini_rpc::Client client(endpoint);
 
-    auto sum = client.call("add", 10, 32);
-    std::println("add(10, 32) = {}", sum.as<int>());
+        auto sum = client.call("add", 10, 32);
+        std::println("add(10, 32) = {}", sum.as<int>());
 
-    auto product = client.call("multiply", 3.14, 2.0);
-    std::println("multiply(3.14, 2.0) = {}", product.as<double>());
+        auto product = client.call("multiply", 3.14, 2.0);
+        std::println("multiply(3.14, 2.0) = {}", product.as<double>());
 
-    auto bad_div = client.call("divide", 1, 0);
-    if (!bad_div.ok()) {
-        std::println("divide(1, 0) failed: error code {}", static_cast<int>(bad_div.error()));
+        auto bad_div = client.call("divide", 1, 0);
+        if (!bad_div.ok()) {
+            std::println("divide(1, 0) failed: error code {}", static_cast<int>(bad_div.error()));
+        }
+
+        auto missing = client.call("nonexistent", 42);
+        if (!missing.ok()) {
+            std::println("nonexistent method: error code {}", static_cast<int>(missing.error()));
+        }
+
+        auto result = client.call("add", 5, 5);
+        if (auto val = result.try_as<int>()) {
+            std::println("add(5, 5) = {}", *val);
+        }
+
+        client.call("ping");
     }
-
-    auto missing = client.call("nonexistent", 42);
-    if (!missing.ok()) {
-        std::println("nonexistent method: error code {}", static_cast<int>(missing.error()));
-    }
-
-    auto result = client.call("add", 5, 5);
-    if (auto val = result.try_as<int>()) {
-        std::println("add(5, 5) = {}", *val);
-    }
-
-    client.call("ping");
 
     server.stop();
     server_thread.join();

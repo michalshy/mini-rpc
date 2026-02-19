@@ -1,56 +1,53 @@
 #include "server.h"
 
-#include "coder.h"
-#include "frame/frame.h"
-#include "result.h"
+#include "client.h"
 #include "server/os/unix_server.h"
 #include "server/os/win_server.h"
 #include "server/rpc_server.h"
 
 #include "platform/platform.h"
+#include "worker_pool.h"
 
-#include <cstdint>
 #include <memory>
+#include <print>
+#include <utility>
 
 namespace mini_rpc {
 
-Server::Server(std::string _endpoint) : rpc(std::make_unique<RpcServer>()) {
+Server::Server(std::string _endpoint) : rpc(std::make_unique<RpcServer>()), endpoint(_endpoint) {
     platform_init();
-
 #ifdef MINI_RPC_UNIX
     server_transport = std::make_unique<UnixServerSocket>(_endpoint);
 #elif defined(MINI_RPC_WIN)
     server_transport = std::make_unique<WindowsServerSocket>(_endpoint);
 #endif
+    pool = std::make_unique<WorkerPool>(*rpc);
 }
+
+Server::~Server() {}
 
 void Server::run() {
     server_transport->bind();
     server_transport->listen();
 
-    while (!stopped) {
+    while (true) {
         auto transport = server_transport->accept();
+
         if (!transport)
             break;
 
-        Framer framer(std::move(transport));
-
-        while (!stopped) {
-            auto msg = framer.recv_message();
-            if (!msg) {
-                break; // client disconnected cleanly
-            }
-
-            buffer response = rpc->handle_message(*msg);
-            framer.send_message(response);
+        if (stopped) {
+            break;
         }
+
+        pool->push_connection(std::move(transport));
     }
 }
 
 void Server::stop() {
+    pool->close();
     stopped = true;
+    Client dummy(endpoint);
     server_transport->close();
 }
-
-Server::~Server() {}
 } // namespace mini_rpc

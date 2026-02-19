@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <memory>
 #include <optional>
+#include <print>
 #include <stdexcept>
 
 namespace mini_rpc {
@@ -30,6 +31,10 @@ std::optional<buffer> Framer::recv_message() {
     read_all(msg.data(), size);
 
     return msg;
+}
+
+void Framer::close() {
+    transport->close();
 }
 
 void Framer::write_all(const std::byte* data, size_t size) {

@@ -18,4 +18,8 @@ RpcClient::RpcClient(std::string _endpoint) {
     transport->connect();
     framer = std::make_unique<Framer>(std::move(transport));
 }
+
+RpcClient::~RpcClient() {
+    framer->close();
+}
 } // namespace mini_rpc
