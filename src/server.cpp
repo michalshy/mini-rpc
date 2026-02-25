@@ -9,7 +9,6 @@
 #include "worker_pool.h"
 
 #include <memory>
-#include <print>
 #include <utility>
 
 namespace mini_rpc {
@@ -33,13 +32,13 @@ void Server::run() {
     while (true) {
         auto transport = server_transport->accept();
 
-        if (!transport)
+        if (!transport) {
             break;
+        }
 
         if (stopped) {
             break;
         }
-
         pool->push_connection(std::move(transport));
     }
 }

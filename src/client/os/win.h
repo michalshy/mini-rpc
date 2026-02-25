@@ -2,6 +2,7 @@
 
 #ifdef MINI_RPC_WIN
 
+#include "common.h"
 #include "transport.h"
 
 #include <string>
@@ -16,10 +17,10 @@ public:
     explicit WindowsSocket(SOCKET _sock);
     ~WindowsSocket() override;
 
-    void connect() override;
-    size_t send(const std::byte* data, size_t size) override;
-    size_t recv(std::byte* data, size_t size) override;
-    void close() override;
+    ConnectionResult connect() override;
+    TransferResult send(const std::byte* data, size_t size) override;
+    TransferResult recv(std::byte* data, size_t size) override;
+    ConnectionResult close() override;
 
 protected:
     SOCKET sock{INVALID_SOCKET};

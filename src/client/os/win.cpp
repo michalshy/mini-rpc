@@ -13,7 +13,7 @@ WindowsSocket::~WindowsSocket() {
     close();
 }
 
-void WindowsSocket::connect() {
+ConnectionResult WindowsSocket::connect() {
     if (sock != INVALID_SOCKET) {
         return;
     }
@@ -38,7 +38,7 @@ void WindowsSocket::connect() {
     }
 }
 
-size_t WindowsSocket::send(const std::byte* data, size_t size) {
+TransferResult WindowsSocket::send(const std::byte* data, size_t size) {
     if (sock == INVALID_SOCKET) {
         throw std::runtime_error("send on closed socket");
     }
@@ -51,7 +51,7 @@ size_t WindowsSocket::send(const std::byte* data, size_t size) {
     return static_cast<size_t>(n);
 }
 
-size_t WindowsSocket::recv(std::byte* data, size_t size) {
+TransferResult WindowsSocket::recv(std::byte* data, size_t size) {
     if (sock == INVALID_SOCKET) {
         throw std::runtime_error("recv on closed socket");
     }
@@ -63,7 +63,7 @@ size_t WindowsSocket::recv(std::byte* data, size_t size) {
 
     return static_cast<std::size_t>(n);
 }
-void WindowsSocket::close() {
+ConnectionResult WindowsSocket::close() {
     if (sock != INVALID_SOCKET) {
         ::closesocket(sock);
     }

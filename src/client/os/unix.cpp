@@ -1,4 +1,5 @@
 #include "unix.h"
+#include <expected>
 
 #ifdef MINI_RPC_UNIX
 
@@ -14,6 +15,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "common.h"
+
 namespace mini_rpc {
 
 UnixSocket::UnixSocket(std::string _endpoint) : endpoint(std::move(_endpoint)) {}
@@ -21,17 +24,18 @@ UnixSocket::UnixSocket(std::string _endpoint) : endpoint(std::move(_endpoint)) {
 UnixSocket::UnixSocket(int _fd) : fd(_fd) {}
 
 UnixSocket::~UnixSocket() {
-    close();
+    [[maybe_unused]] ConnectionResult res = close();
+    // later handle
 }
 
-void UnixSocket::connect() {
+ConnectionResult UnixSocket::connect() {
     if (fd != -1) {
-        return;
+        return {};
     }
 
     fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (fd == -1) {
-        throw std::runtime_error("socket() failed");
+        return std::unexpected(E::SOCKET_ERROR);
     }
 
     sockaddr_un addr{};
@@ -41,41 +45,44 @@ void UnixSocket::connect() {
     if (::connect(fd, reinterpret_cast<sockaddr*>(&addr), sizeof(sockaddr_un)) == -1) {
         ::close(fd);
         fd = -1;
-        throw std::runtime_error("connect() failed");
+        return std::unexpected(E::CONNECT_ERROR);
     }
+
+    return {};
 }
 
-size_t UnixSocket::send(const std::byte* data, size_t size) {
+TransferResult UnixSocket::send(const std::byte* data, size_t size) {
     if (fd == -1) {
-        throw std::runtime_error("send on closed socket");
+        return std::unexpected(E::SEND_ERROR);
     }
 
     ssize_t n = ::write(fd, data, size);
     if (n < 0) {
-        throw std::runtime_error("write() failed");
+        return std::unexpected(E::WRITE_ERROR);
     }
 
     return static_cast<size_t>(n);
 }
 
-size_t UnixSocket::recv(std::byte* data, size_t size) {
+TransferResult UnixSocket::recv(std::byte* data, size_t size) {
     if (fd == -1) {
-        throw std::runtime_error("recv on closed socket");
+        return std::unexpected(E::RECV_ERROR);
     }
 
     ssize_t n = ::read(fd, data, size);
     if (n < 0) {
-        throw std::runtime_error("read() failed");
+        return std::unexpected(E::READ_ERROR);
     }
 
     return static_cast<std::size_t>(n);
 }
 
-void UnixSocket::close() {
+ConnectionResult UnixSocket::close() {
     if (fd != -1) {
         ::close(fd);
         fd = -1;
     }
+    return {};
 }
 
 } // namespace mini_rpc

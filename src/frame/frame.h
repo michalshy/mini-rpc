@@ -19,7 +19,7 @@ public:
 protected:
     std::unique_ptr<ITransport> transport;
 
-    void write_all(const std::byte* data, size_t size);
-    void read_all(std::byte* data, size_t size);
+    TransferResult write_all(const std::byte* data, size_t size);
+    TransferResult read_all(std::byte* data, size_t size);
 };
 } // namespace mini_rpc
